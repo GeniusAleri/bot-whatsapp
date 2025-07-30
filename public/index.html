@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot QR Code</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        /* === GENERAL STYLE === */
+        body {
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            background-color: #1e1e2f;
+            color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        /* === QR CODE BOX === */
+        .qr-container {
+            background: #2a2a3a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 300px;
+            width: 100%;
+        }
+
+        #qrCode {
+            margin-top: 10px;
+            display: none;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        /* === STATUS MESSAGE === */
+        #status {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        /* === LOG CONSOLE === */
+        .log-container {
+            background: #161624;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            border-left: 5px solid #4CAF50;
+            text-align: left;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .log-message {
+            background: #2e2e4a;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-size: 14px;
+            word-wrap: break-word;
+            display: block;
+        }
+
+        /* === SCROLL BAR STYLE === */
+        .log-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background: #4CAF50;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="title">WhatsApp Bot</h1>
+
+    <!-- QR Code Container -->
+    <div class="qr-container">
+        <img id="qrCode" src="" alt="QR Code akan muncul di sini">
+        <p id="status">Loading ...</p>
+    </div>
+
+    <!-- Log Console -->
+    <div class="log-container" id="logConsole"></div>
+
+    <script>
+        const socket = io();
+        const qrImg = document.getElementById("qrCode");
+        const title = document.getElementById("title");
+        const statusText = document.getElementById("status");
+        const logConsole = document.getElementById("logConsole");
+
+        function addLog(message) {
+            const logEntry = document.createElement("span");
+            logEntry.classList.add("log-message");
+            logEntry.textContent = message;
+            logConsole.appendChild(logEntry);
+            logConsole.scrollTop = logConsole.scrollHeight; // Auto scroll ke bawah
+        }
+
+        socket.on("qr", (qrData) => {
+            title.textContent = "WhatsApp Bot QR Code";
+            qrImg.src = qrData;
+            qrImg.style.display = "block"; // Tampilkan QR Code
+            statusText.textContent = "📷 Silakan scan QR Code untuk login.";
+            addLog("📷 QR Code baru diterima!");
+        });
+
+        let lastMessage = "";
+
+        socket.on("status", (message) => {
+            if (message !== lastMessage) {
+                title.textContent = "";
+                statusText.textContent = "Login Berhasil";
+                addLog(`${message}`);
+                lastMessage = message;
+            }
+        });
+
+        socket.on("connected", (isConnected) => {
+            if (isConnected) {
+                qrImg.style.display = "none";
+                addLog("✅ Berhasil login!");
+            } else {
+                logConsole.innerHTML = "";
+                qrImg.style.display = "block";
+                addLog("❌ Bot logout. Scan ulang QR Code.");
+            }
+        });
+
+        socket.on("incomingMessage", (data) => {
+            addLog(`📩 ${data.sender}: ${data.text}`);
+        });
+
+    </script>
+</body>
+
+</html>
