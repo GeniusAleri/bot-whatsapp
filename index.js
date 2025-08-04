@@ -12,6 +12,7 @@ const { toBuffer } = require("qrcode");
 const levenshtein = require("fast-levenshtein");
 const sendMessages = require("./sendMessages");
 const db = require("./db");
+const { DateTime } = require("luxon");
 
 const AUTH_FOLDER = "auth_info";
 const PORT = 3000;
@@ -26,8 +27,6 @@ let isConnected = false;
 const activeSessions = {};
 const sessions = {};
 const pendingMessages = {};
-
-const { DateTime } = require("luxon");
 
 function emitStatus(msg) {
   console.log(msg);
